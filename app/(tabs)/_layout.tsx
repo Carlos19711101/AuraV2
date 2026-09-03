@@ -1,72 +1,75 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets(); // 🔹 Obtiene el espacio seguro inferior
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#C77DFF',
-        tabBarInactiveTintColor: 'rgba(233,213,255,0.55)',
+        tabBarInactiveTintColor: 'rgba(233,213,255,0.5)',
         tabBarStyle: {
-          backgroundColor: '#1A0033',
-          borderTopColor: 'rgba(255,255,255,0.08)',
-          height: 62,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: 'rgba(20, 0, 40, 0.92)',
+          borderTopWidth: 0,
+          borderTopColor: 'transparent',
+          elevation: 0,
+          shadowColor: '#000',
+          shadowOpacity: 0.2,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: -3 },
+          // ✅ Altura dinámica: base + espacio inferior seguro
+          height: Platform.OS === 'ios' ? 70 + insets.bottom : 60 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
+          letterSpacing: 0.3,
+        },
+        tabBarIconStyle: {
+          marginBottom: 4,
         },
       }}
     >
+      {/* Las pantallas se mantienen igual */}
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           title: 'Inicio',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="shield-checkmark" size={size} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
-        name="search"
+        name="chat"
         options={{
-          title: 'Buscar',
+          title: 'Acompañamiento',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <Ionicons name="chatbubbles" size={size} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
-        name="create"
+        name="resources"
         options={{
-          title: 'Crear',
+          title: 'Recursos',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" size={size + 2} color={color} />
+            <Ionicons name="information-circle" size={size} color={color} />
           ),
         }}
       />
-
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: 'Alertas',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />

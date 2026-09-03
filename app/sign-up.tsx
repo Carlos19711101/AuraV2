@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -286,7 +287,7 @@ export default function SignUpScreen() {
                   {avatar?.uri ? (
                     <Image source={{ uri: avatar.uri }} style={styles.avatarImage} />
                   ) : (
-                    <Text style={styles.avatarInitial}>{avatarInitial}</Text>
+                    <Ionicons name="person" size={40} color="#f8f7fa" />
                   )}
 
                   <View style={styles.editBadge}>

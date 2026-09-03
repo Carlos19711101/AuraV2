@@ -13,8 +13,11 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="sign-in" />
         <Stack.Screen name="sign-up" />
-        <Stack.Screen name="sign-up-success" />
+        <Stack.Screen name="info" />
+        <Stack.Screen name="(tabs)" />
+
       </Stack>
     </SafeAreaProvider>
   );

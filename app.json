@@ -3,14 +3,19 @@
     "name": "Aura Púrpura",
     "slug": "aurav2",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "scheme": "aurapurpura",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "android": {
+      "package": "com.anonymous.aurav2"
     }
   }
 }

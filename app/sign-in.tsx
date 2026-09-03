@@ -66,7 +66,7 @@ export default function SignIn() {
         return;
       }
 
-      router.replace('/(tabs)/home');
+      router.replace('/(tabs)');
     } catch (error) {
       setAuthError('Ocurrió un error al iniciar sesión.');
     } finally {
@@ -99,7 +99,7 @@ export default function SignIn() {
           >
             <View style={styles.headerRow}>
               <TouchableOpacity
-                onPress={() => router.back()}
+                onPress={() => router.replace('/')}
                 style={styles.backBtn}
                 activeOpacity={0.85}
               >

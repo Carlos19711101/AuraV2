@@ -1,10 +1,33 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '../src/lib/supabase';
 
 export default function Welcome() {
   const router = useRouter();
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        router.replace('/(tabs)');
+      } else {
+        setCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  if (checkingSession) {
+    return (
+      <LinearGradient colors={['#1A0033', '#3A0CA3', '#7209B7', '#1A0033']} style={styles.loadingContainer}>
+        <ActivityIndicator color="#FFFFFF" size="large" />
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -24,6 +47,7 @@ export default function Welcome() {
           </View>
 
           <Text style={styles.appName}>AURA</Text>
+          <Text style={styles.appName1}>PÚRPURA</Text>
 
           <View style={styles.divider} />
 
@@ -45,6 +69,7 @@ export default function Welcome() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.buttonGradient}
+                
               >
                 <Text style={styles.primaryButtonText}>Registrarme</Text>
               </LinearGradient>
@@ -56,6 +81,14 @@ export default function Welcome() {
               activeOpacity={0.85}
             >
               <Text style={styles.secondaryButtonText}>Iniciar sesión</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.infoButton}
+              onPress={() => router.push('./info')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.infoButtonText}>Más información</Text>
             </TouchableOpacity>
           </View>
 
@@ -69,125 +102,71 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    justifyContent: 'center',
-  },
+  container: { flex: 1, justifyContent: 'center' },
+  safeArea: { flex: 1, justifyContent: 'center' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   glowTop: {
-    position: 'absolute',
-    top: -90,
-    left: '50%',
-    width: 255,
-    height: 220,
-    borderRadius: 110,
+    position: 'absolute', top: -90, left: '50%',
+    width: 255, height: 220, borderRadius: 110,
     backgroundColor: 'rgba(157, 78, 221, 0.25)',
   },
   glowBottom: {
-    position: 'absolute',
-    bottom: -100,
-    right: '10%',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    position: 'absolute', bottom: -100, right: '10%',
+    width: 200, height: 200, borderRadius: 100,
     backgroundColor: 'rgba(123, 44, 191, 0.2)',
   },
-  content: {
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-  logoContainer: {
-    marginBottom: 30,
-  },
+  content: { alignItems: 'center', paddingHorizontal: 30 },
+  logoContainer: { marginBottom: 30 },
   logoGlow: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 90, height: 90, borderRadius: 45,
     backgroundColor: 'rgba(123, 44, 191, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#9D4EDD',
-    shadowOpacity: 0.9,
-    shadowRadius: 25,
-    elevation: 12,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#9D4EDD', shadowOpacity: 0.9, shadowRadius: 25, elevation: 12,
   },
   logoIcon: {
-    fontSize: 38,
-  },
-  appName: {
-    fontSize: 42,
+     fontSize: 38
+    },
+  appName:
+   { fontSize: 45,
     fontWeight: '800',
     color: '#F5EFFF',
-    letterSpacing: 3,
-  },
-  divider: {
-    width: 50,
-    height: 3,
-    backgroundColor: '#C77DFF',
-    borderRadius: 2,
-    marginVertical: 16,
-  },
-  tagline: {
-    fontSize: 18,
-    color: '#D8B4FE',
-    letterSpacing: 1.5,
-    marginBottom: 10,
-  },
-  subtitle: {
+    letterSpacing: 3
+   },
+
+  appName1: {
     fontSize: 15,
-    color: 'rgba(233, 213, 255, 0.75)',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 50,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 14,
-    marginBottom: 30,
-  },
-  primaryButton: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#9D4EDD',
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  buttonGradient: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    gap: 10,
-  },
-  primaryButtonText: {
+    fontWeight: 'bold',
     color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  secondaryButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  secondaryButtonText: {
-    color: '#E9D5FF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  footerText: {
-    fontSize: 12,
-    color: 'rgba(233, 213, 255, 0.5)',
-    letterSpacing: 1,
+    letterSpacing: 3,
     marginTop: 10,
   },
+  divider: { width: 50, height: 3, backgroundColor: '#C77DFF', borderRadius: 2, marginVertical: 16 },
+  tagline: { fontSize: 18, color: '#D8B4FE', letterSpacing: 1.5, marginBottom: 10 },
+  subtitle: {
+    fontSize: 15, color: 'rgba(233, 213, 255, 0.75)',
+    textAlign: 'center', lineHeight: 22, marginBottom: 50,
+  },
+  buttonContainer: { width: '100%', gap: 14, marginBottom: 30 },
+  primaryButton: {
+    borderRadius: 28, overflow: 'hidden',
+    shadowColor: '#9D4EDD', shadowOpacity: 0.5, shadowRadius: 15, elevation: 8,
+  },
+  buttonGradient: {
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    paddingVertical: 16, gap: 10,
+  },
+  primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700', letterSpacing: 1 },
+  secondaryButton: {
+    justifyContent: 'center', alignItems: 'center',
+    paddingVertical: 16, borderRadius: 28,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  secondaryButtonText: { color: '#E9D5FF', fontSize: 15, fontWeight: '700', letterSpacing: 0.6 },
+  infoButton: {
+    justifyContent: 'center', alignItems: 'center',
+    paddingVertical: 10,
+  },
+  infoButtonText: { color: '#C77DFF', fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
+  footerText: { fontSize: 12, color: 'rgba(233, 213, 255, 0.5)', letterSpacing: 1, marginTop: 10 },
 });
