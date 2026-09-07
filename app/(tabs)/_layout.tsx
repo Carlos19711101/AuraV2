@@ -47,7 +47,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="contactos"
         options={{
           title: 'Acompañamiento',
           tabBarIcon: ({ color, size }) => (

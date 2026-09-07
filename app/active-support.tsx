@@ -3,13 +3,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 
@@ -19,6 +19,7 @@ type Contact = {
   phone: string;
   relationship: string | null;
   priority: number;
+  contact_user_id?: string | null; // ✅ Añadido para vincular contacto con usuario AURA
 };
 
 type SupportSession = {
@@ -34,6 +35,7 @@ type SupportRequest = {
   id: string;
   session_id: string;
   contact_id: string;
+  contact_user_id?: string | null; // ✅ Añadido
   status: string;
   created_at: string;
 };
@@ -114,6 +116,7 @@ export default function ActiveSupportScreen() {
     try {
       setSendingRequest(true);
 
+      // 1. Crear sesión
       const { data: sessionData, error: sessionError } = await supabase
         .from('support_sessions')
         .insert({
@@ -126,9 +129,11 @@ export default function ActiveSupportScreen() {
       if (sessionError) throw sessionError;
       const newSession = sessionData as SupportSession;
 
+      // 2. Crear solicitudes para cada contacto, incluyendo contact_user_id
       const requests = contacts.map((contact) => ({
         session_id: newSession.id,
         contact_id: contact.id,
+        contact_user_id: contact.contact_user_id || null, // ✅ Incluimos el vínculo
         status: 'pending',
       }));
 
@@ -137,6 +142,11 @@ export default function ActiveSupportScreen() {
         .insert(requests);
 
       if (requestsError) throw requestsError;
+
+      // ✅ Llamar a la Edge Function para enviar notificaciones push
+      await supabase.functions.invoke('notify_support_request', {
+        body: { session_id: newSession.id },
+      });
 
       setActiveSession(newSession);
       Alert.alert(
@@ -202,7 +212,7 @@ export default function ActiveSupportScreen() {
     }
   };
 
-  // ✅ Finalizar acompañamiento
+  // Finalizar acompañamiento
   const handleFinishSupport = async () => {
     if (!activeSession) return;
 

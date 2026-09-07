@@ -23,9 +23,10 @@ type Contact = {
   phone: string;
   relationship: string | null;
   priority: number;
+  contact_user_id?: string | null;
 };
 
-export default function ContactsScreen() {
+export default function ContactosScreen() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,6 +35,7 @@ export default function ContactsScreen() {
   const [phone, setPhone] = useState('');
   const [relationship, setRelationship] = useState('');
   const [priority, setPriority] = useState('1');
+  const [contactDocument, setContactDocument] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function ContactsScreen() {
     setPhone('');
     setRelationship('');
     setPriority('1');
+    setContactDocument('');
     setModalVisible(true);
   };
 
@@ -73,6 +76,7 @@ export default function ContactsScreen() {
     setPhone(contact.phone);
     setRelationship(contact.relationship || '');
     setPriority(String(contact.priority || 1));
+    setContactDocument('');
     setModalVisible(true);
   };
 
@@ -85,12 +89,33 @@ export default function ContactsScreen() {
 
     try {
       setSaving(true);
+
+      let contactUserId: string | null = null;
+      if (contactDocument.trim()) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('document_id', contactDocument.trim())
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        if (profileData) {
+          contactUserId = profileData.id;
+        } else {
+          Alert.alert(
+            'Usuario no encontrado',
+            'No se encontró un usuario de AURA con ese documento. El contacto se guardará sin vínculo.'
+          );
+        }
+      }
+
       const contactData = {
         user_id: userId,
         name: name.trim(),
         phone: phone.trim(),
         relationship: relationship.trim() || null,
         priority: parseInt(priority) || 1,
+        contact_user_id: contactUserId,
       };
 
       if (editingContact) {
@@ -191,84 +216,33 @@ export default function ContactsScreen() {
         <Ionicons name="add" size={30} color="#FFF" />
       </TouchableOpacity>
 
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
+      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              {editingContact ? 'Editar contacto' : 'Nuevo contacto'}
-            </Text>
-
-            {/* ✅ Contenido con scroll para que el teclado no tape nada */}
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingBottom: 20 }}
-            >
+            <Text style={styles.modalTitle}>{editingContact ? 'Editar contacto' : 'Nuevo contacto'}</Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 20 }}>
               <Text style={styles.label}>Nombre</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Nombre completo"
-                placeholderTextColor="rgba(233,213,255,0.4)"
-              />
+              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Nombre completo" placeholderTextColor="rgba(233,213,255,0.4)" />
 
               <Text style={styles.label}>Teléfono</Text>
-              <TextInput
-                style={styles.input}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="Número de teléfono"
-                placeholderTextColor="rgba(233,213,255,0.4)"
-                keyboardType="phone-pad"
-              />
+              <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="Número de teléfono" placeholderTextColor="rgba(233,213,255,0.4)" keyboardType="phone-pad" />
 
               <Text style={styles.label}>Relación (opcional)</Text>
-              <TextInput
-                style={styles.input}
-                value={relationship}
-                onChangeText={setRelationship}
-                placeholder="Ej: Madre, Amiga, Terapeuta"
-                placeholderTextColor="rgba(233,213,255,0.4)"
-              />
+              <TextInput style={styles.input} value={relationship} onChangeText={setRelationship} placeholder="Ej: Madre, Amiga, Terapeuta" placeholderTextColor="rgba(233,213,255,0.4)" />
 
-              {/* ✅ Mejor explicación de prioridad */}
               <Text style={styles.label}>Orden de importancia</Text>
-              <Text style={styles.helperText}>
-                Usa números para ordenar tus contactos: 1 es el más importante, 2 el siguiente, y así sucesivamente. También puedes repetir números si tienen la misma prioridad.
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={priority}
-                onChangeText={setPriority}
-                keyboardType="numeric"
-                placeholder="Ej: 1, 2, 3..."
-                placeholderTextColor="rgba(233,213,255,0.4)"
-              />
+              <Text style={styles.helperText}>Usa números para ordenar tus contactos: 1 es el más importante, 2 el siguiente, y así sucesivamente.</Text>
+              <TextInput style={styles.input} value={priority} onChangeText={setPriority} keyboardType="numeric" placeholder="Ej: 1, 2, 3..." placeholderTextColor="rgba(233,213,255,0.4)" />
+
+              <Text style={styles.label}>Número de documento del contacto en AURA</Text>
+              <TextInput style={styles.input} value={contactDocument} onChangeText={setContactDocument} placeholder="Ej: 1234567890" placeholderTextColor="rgba(233,213,255,0.4)" autoCapitalize="none" />
 
               <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setModalVisible(false)}
-                >
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
                   <Text style={styles.cancelButtonText}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.saveButton]}
-                  onPress={handleSave}
-                  disabled={saving}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {saving ? 'Guardando...' : 'Guardar'}
-                  </Text>
+                <TouchableOpacity style={[styles.modalButton, styles.saveButton]} onPress={handleSave} disabled={saving}>
+                  <Text style={styles.saveButtonText}>{saving ? 'Guardando...' : 'Guardar'}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -334,35 +308,12 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  modalContainer: {
-    backgroundColor: '#2A0A4A',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingHorizontal: 20 },
+  modalContainer: { backgroundColor: '#2A0A4A', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   modalTitle: { fontSize: 22, fontWeight: '800', color: '#FFF', marginBottom: 16 },
   label: { color: '#D8B4FE', fontSize: 13, fontWeight: '700', marginBottom: 6, marginTop: 10 },
-  helperText: {
-    color: 'rgba(233,213,255,0.6)',
-    fontSize: 12,
-    marginBottom: 6,
-    lineHeight: 16,
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: '#FFF',
-    fontSize: 15,
-  },
+  helperText: { color: 'rgba(233,213,255,0.6)', fontSize: 12, marginBottom: 6, lineHeight: 16 },
+  input: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, color: '#FFF', fontSize: 15 },
   modalButtons: { flexDirection: 'row', gap: 10, marginTop: 20 },
   modalButton: { flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   cancelButton: { backgroundColor: 'rgba(255,255,255,0.1)' },

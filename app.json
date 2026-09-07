@@ -15,7 +15,14 @@
       "typedRoutes": true
     },
     "android": {
-      "package": "com.anonymous.aurav2"
+      "package": "com.anonymous.aurav2",
+       "googleServicesFile": "./google-services.json"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e71d14b3-4c6d-45f8-bd37-7420a9b560f3"
+      }
     }
   }
 }

@@ -72,7 +72,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickButton} onPress={() => router.push('././chat')}>
+          <TouchableOpacity style={styles.quickButton} onPress={() => router.push('./contactos')}>
             <Ionicons name="chatbubble-ellipses" size={24} color="#FFF" />
             <Text style={styles.quickText}>Contactos Apoyo</Text>
           </TouchableOpacity>
@@ -80,6 +80,13 @@ export default function HomeScreen() {
             <Ionicons name="call" size={24} color="#FFF" />
             <Text style={styles.quickText}>Líneas de ayuda</Text>
           </TouchableOpacity>
+          {/* <TouchableOpacity
+            style={styles.quickButton}
+            onPress={() => router.push('./requests-received')}
+          >
+            <Ionicons name="notifications" size={24} color="#FFF" />
+            <Text style={styles.quickText}>Solicitudes</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
     </LinearGradient>
