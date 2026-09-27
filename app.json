@@ -7,16 +7,59 @@
     "scheme": "aurapurpura",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "plugins": [
       "expo-router",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20",
+            "ndkVersion": "27.1.12297006",
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "buildToolsVersion": "36.0.0"
+          }
+        }
+      ],
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "android": {
       "package": "com.anonymous.aurav2",
-       "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.aurav2",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "AURA usa tu cámara para las videollamadas de acompañamiento.",
+        "NSMicrophoneUsageDescription": "AURA usa tu micrófono para las videollamadas de acompañamiento.",
+        "NSLocationWhenInUseUsageDescription": "AURA comparte tu ubicación con tu red de apoyo en momentos de riesgo.",
+        "NSPhotoLibraryUsageDescription": "AURA accede a tu galería para que puedas elegir tu foto de perfil.",
+        "NSFaceIDUsageDescription": "AURA protege tus claves de cifrado con Face ID.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "extra": {
       "router": {},

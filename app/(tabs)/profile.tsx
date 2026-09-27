@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { registerForPushNotifications } from '../../src/lib/notifications';
 import { supabase } from '../../src/lib/supabase';
 
 export default function ProfileScreen() {
@@ -138,14 +139,12 @@ export default function ProfileScreen() {
       setSaving(true);
       setUsernameError('');
 
-      // Generar username automático si está vacío
       const baseUsername =
         username.trim() ||
         fullName.trim().toLowerCase().replace(/\s+/g, '_') ||
         'usuario';
       const finalUsername = username.trim() ? username.trim() : `${baseUsername}_${Math.floor(Math.random() * 10000)}`;
 
-      // Verificar unicidad del username
       const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
@@ -186,10 +185,16 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
-      router.replace('/');
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo cerrar sesión');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // ✅ Esperar brevemente para que Supabase limpie el token,
+      // luego navegar a la pantalla de bienvenida
+      setTimeout(() => {
+        router.replace('/');
+      }, 150);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
     }
   };
 
@@ -320,6 +325,19 @@ export default function ProfileScreen() {
                 <Text style={styles.saveButtonText}>Guardar cambios</Text>
               </>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={async () => {
+              if (userId) {
+                await registerForPushNotifications(userId);
+                Alert.alert('Token registrado', 'Revisa Supabase → push_tokens');
+              }
+            }}
+          >
+            <Ionicons name="notifications" size={20} color="#FFF" />
+            <Text style={styles.saveButtonText}>Regenerar token push</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

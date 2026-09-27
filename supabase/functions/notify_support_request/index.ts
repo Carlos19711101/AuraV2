@@ -6,65 +6,118 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
-  // Leer el body de la solicitud
-  const { session_id } = await req.json();
+  try {
+    const payload = await req.json();
+    console.log('Payload request:', JSON.stringify(payload));
 
-  if (!session_id) {
-    return new Response(JSON.stringify({ error: 'session_id es requerido' }), { status: 400 });
+    // ✅ FILTRO: Solo procesar INSERT (no UPDATE ni DELETE)
+    if (payload.type && payload.type !== 'INSERT') {
+      console.log('SKIP: no es INSERT');
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'not_insert' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const session_id = payload.session_id || payload.record?.session_id;
+    const specificContactUserId = payload.record?.contact_user_id;
+
+    if (!session_id) {
+      return new Response(JSON.stringify({ error: 'session_id requerido' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Obtener el emisor
+    const { data: session, error: sessionError } = await supabase
+      .from('support_sessions')
+      .select('user_id')
+      .eq('id', session_id)
+      .single();
+
+    if (sessionError) throw sessionError;
+
+    const emisorId = session.user_id;
+
+    // Obtener el nombre del emisor
+    const { data: emitter } = await supabase
+      .from('profiles')
+      .select('full_name, username')
+      .eq('id', emisorId)
+      .maybeSingle();
+
+    const emitterName =
+      emitter?.full_name || emitter?.username || 'Alguien de AURA';
+
+    // Determinar destinatarios
+    let userIds: string[] = [];
+
+    if (specificContactUserId) {
+      // ✅ Llamada desde webhook: solo a ese contacto
+      if (specificContactUserId !== emisorId) {
+        userIds = [specificContactUserId];
+      }
+    } else {
+      // Llamada directa: todos los pendientes
+      const { data: requests } = await supabase
+        .from('support_requests')
+        .select('contact_user_id')
+        .eq('session_id', session_id)
+        .eq('status', 'pending');
+
+      userIds = (requests || [])
+        .map((r: any) => r.contact_user_id)
+        .filter((id: string | null) => id && id !== emisorId);
+    }
+
+    if (userIds.length === 0) {
+      return new Response(JSON.stringify({ success: true, message: 'Sin destinatarios' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Obtener tokens
+    const { data: tokens } = await supabase
+      .from('push_tokens')
+      .select('token')
+      .in('user_id', userIds);
+
+    if (!tokens || tokens.length === 0) {
+      return new Response(JSON.stringify({ success: true, message: 'Sin tokens' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Enviar notificaciones
+    const messages = tokens.map((t: any) => ({
+      to: t.token,
+      sound: 'default',
+      title: 'AURA',
+      body: `${emitterName} necesita acompañamiento`,
+      data: { session_id },
+    }));
+
+    const pushResponse = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messages),
+    });
+
+    const pushResult = await pushResponse.json();
+    console.log('Respuesta Expo Push:', JSON.stringify(pushResult));
+
+    return new Response(
+      JSON.stringify({ success: true, sent: tokens.length, result: pushResult }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (e) {
+    console.error('Error:', e);
+    return new Response(JSON.stringify({ error: String(e) }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-
-  // 1. Obtener los contact_user_id de las solicitudes pendientes de esa sesión
-  const { data: requests, error: reqError } = await supabase
-    .from('support_requests')
-    .select('contact_user_id')
-    .eq('session_id', session_id)
-    .eq('status', 'pending');
-
-  if (reqError) {
-    return new Response(JSON.stringify({ error: reqError.message }), { status: 500 });
-  }
-
-  // Extraer los IDs de usuario (contact_user_id) sin nulos
-  const userIds = requests
-    .map((r: any) => r.contact_user_id)
-    .filter(Boolean);
-
-  if (userIds.length === 0) {
-    return new Response(JSON.stringify({ success: true, message: 'No hay contactos vinculados' }), { status: 200 });
-  }
-
-  // 2. Obtener los tokens de push de esos usuarios
-  const { data: tokens, error: tokenError } = await supabase
-    .from('push_tokens')
-    .select('token')
-    .in('user_id', userIds);
-
-  if (tokenError) {
-    return new Response(JSON.stringify({ error: tokenError.message }), { status: 500 });
-  }
-
-  if (!tokens || tokens.length === 0) {
-    return new Response(JSON.stringify({ success: true, message: 'No hay tokens registrados' }), { status: 200 });
-  }
-
-  // 3. Enviar notificación push a cada token usando Expo Push API
-  const expoPushApiUrl = 'https://exp.host/--/api/v2/push/send';
-  const messages = tokens.map((t: any) => ({
-    to: t.token,
-    sound: 'default',
-    title: 'AURA',
-    body: 'Necesito acompañamiento',
-    data: { session_id },
-  }));
-
-  const pushResponse = await fetch(expoPushApiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(messages),
-  });
-
-  const pushResult = await pushResponse.json();
-  console.log('Respuesta de Expo Push:', pushResult);
-
-  return new Response(JSON.stringify({ success: true, sent: tokens.length }), { status: 200 });
 });

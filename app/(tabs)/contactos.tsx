@@ -115,7 +115,7 @@ export default function ContactosScreen() {
         phone: phone.trim(),
         relationship: relationship.trim() || null,
         priority: parseInt(priority) || 1,
-        contact_user_id: contactUserId,
+        contact_user_id: contactUserId, // null si no hay vínculo
       };
 
       if (editingContact) {
