@@ -4,6 +4,17 @@
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
   },
+
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "useFsEventsOnParentDirectory",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority"
+  },
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.disableAutomaticTypeAcquisition": false,
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.tsdk": "node_modules/typescript/lib",
+
   "deno.enablePaths": [
     "supabase/functions"
   ],
@@ -23,7 +34,36 @@
     "http",
     "net"
   ],
+
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "files.associations": {
+    "*.tsx": "typescriptreact"
+  },
+
+  "files.exclude": {
+    "**/.expo": true,
+    "**/node_modules": true,
+    "**/android": true,
+    "**/ios": true
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/android": true,
+    "**/ios": true,
+    "**/.expo": true,
+    "**/package-lock.json": true
   }
 }
