@@ -1,9 +1,15 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../src/lib/supabase';
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "../src/lib/supabase";
 
 export default function Welcome() {
   const router = useRouter();
@@ -13,7 +19,7 @@ export default function Welcome() {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
-        router.replace('/(tabs)');
+        router.replace("/(tabs)");
       } else {
         setCheckingSession(false);
       }
@@ -23,7 +29,10 @@ export default function Welcome() {
 
   if (checkingSession) {
     return (
-      <LinearGradient colors={['#1A0033', '#3A0CA3', '#7209B7', '#1A0033']} style={styles.loadingContainer}>
+      <LinearGradient
+        colors={["#06d7f3", "#0c4da3", "#7209B7", "#1A0033"]}
+        style={styles.loadingContainer}
+      >
         <ActivityIndicator color="#FFFFFF" size="large" />
       </LinearGradient>
     );
@@ -31,7 +40,7 @@ export default function Welcome() {
 
   return (
     <LinearGradient
-      colors={['#1A0033', '#3A0CA3', '#7209B7', '#1A0033']}
+      colors={["#0ef3e4", "#1d51df", "#7209B7", "#1A0033"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -51,25 +60,24 @@ export default function Welcome() {
 
           <View style={styles.divider} />
 
-          <Text style={styles.tagline}>Nunca caminas sola</Text>
+          <Text style={styles.tagline}>Nunca caminas sol@</Text>
 
           <Text style={styles.subtitle}>
-            Un espacio seguro donde puedes{'\n'}
-            compartir, crecer y sentirte acompañada
+            Un espacio seguro{"\n"}
+            Donde puedes sentirte acompañad@
           </Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={() => router.push('/sign-up')}
+              onPress={() => router.push("/sign-up")}
               activeOpacity={0.85}
             >
               <LinearGradient
-                colors={['#7B2CBF', '#9D4EDD', '#716ff0']}
+                colors={["#7B2CBF", "#9D4EDD", "#716ff0"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.buttonGradient}
-                
               >
                 <Text style={styles.primaryButtonText}>Registrarme</Text>
               </LinearGradient>
@@ -77,7 +85,7 @@ export default function Welcome() {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/sign-in')}
+              onPress={() => router.push("/sign-in")}
               activeOpacity={0.85}
             >
               <Text style={styles.secondaryButtonText}>Iniciar sesión</Text>
@@ -85,14 +93,19 @@ export default function Welcome() {
 
             <TouchableOpacity
               style={styles.infoButton}
-              onPress={() => router.push('./info')}
+              onPress={() => router.push("./info")}
               activeOpacity={0.85}
             >
               <Text style={styles.infoButtonText}>Más información</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.footerText}>Privacidad. Seguridad. Comunidad.</Text>
+          <Text style={styles.footerText}>
+            Privacidad. Seguridad. Comunidad.
+          </Text>
+        </View>
+        <View>
+          <Text style={styles.requestsText1}>Global Solutions IA</Text>
         </View>
       </SafeAreaView>
 
@@ -102,71 +115,137 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center' },
-  safeArea: { flex: 1, justifyContent: 'center' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center" },
+  safeArea: { flex: 1, justifyContent: "center" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   glowTop: {
-    position: 'absolute', top: -90, left: '50%',
-    width: 255, height: 220, borderRadius: 110,
-    backgroundColor: 'rgba(157, 78, 221, 0.25)',
+    position: "absolute",
+    top: -90,
+    left: "50%",
+    width: 255,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(157, 78, 221, 0.25)",
   },
   glowBottom: {
-    position: 'absolute', bottom: -100, right: '10%',
-    width: 200, height: 200, borderRadius: 100,
-    backgroundColor: 'rgba(123, 44, 191, 0.2)',
+    position: "absolute",
+    bottom: -100,
+    right: "10%",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(123, 44, 191, 0.2)",
   },
-  content: { alignItems: 'center', paddingHorizontal: 30 },
+  content: { alignItems: "center", paddingHorizontal: 30 },
   logoContainer: { marginBottom: 30 },
   logoGlow: {
-    width: 90, height: 90, borderRadius: 45,
-    backgroundColor: 'rgba(123, 44, 191, 0.25)',
-    justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#9D4EDD', shadowOpacity: 0.9, shadowRadius: 25, elevation: 12,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "rgba(123, 44, 191, 0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#9D4EDD",
+    shadowOpacity: 0.9,
+    shadowRadius: 25,
+    elevation: 12,
   },
   logoIcon: {
-     fontSize: 38
-    },
-  appName:
-   { fontSize: 45,
-    fontWeight: '800',
-    color: '#F5EFFF',
-    letterSpacing: 3
-   },
+    fontSize: 38,
+  },
+  appName: {
+    fontSize: 45,
+    fontWeight: "800",
+    color: "#F5EFFF",
+    letterSpacing: 3,
+  },
 
   appName1: {
     fontSize: 15,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: "bold",
+    color: "#FFF",
     letterSpacing: 3,
     marginTop: 10,
   },
-  divider: { width: 50, height: 3, backgroundColor: '#C77DFF', borderRadius: 2, marginVertical: 16 },
-  tagline: { fontSize: 18, color: '#D8B4FE', letterSpacing: 1.5, marginBottom: 10 },
-  subtitle: {
-    fontSize: 15, color: 'rgba(233, 213, 255, 0.75)',
-    textAlign: 'center', lineHeight: 22, marginBottom: 50,
+  divider: {
+    width: 50,
+    height: 3,
+    backgroundColor: "#C77DFF",
+    borderRadius: 2,
+    marginVertical: 16,
   },
-  buttonContainer: { width: '100%', gap: 14, marginBottom: 30 },
+  tagline: {
+    fontSize: 18,
+    color: "#D8B4FE",
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "rgba(233, 213, 255, 0.75)",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 50,
+  },
+  buttonContainer: { width: "100%", gap: 14, marginBottom: 30 },
   primaryButton: {
-    borderRadius: 28, overflow: 'hidden',
-    shadowColor: '#9D4EDD', shadowOpacity: 0.5, shadowRadius: 15, elevation: 8,
+    borderRadius: 28,
+    overflow: "hidden",
+    shadowColor: "#9D4EDD",
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 8,
   },
   buttonGradient: {
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-    paddingVertical: 16, gap: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+    gap: 10,
   },
-  primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700', letterSpacing: 1 },
+  primaryButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
   secondaryButton: {
-    justifyContent: 'center', alignItems: 'center',
-    paddingVertical: 16, borderRadius: 28,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
-  secondaryButtonText: { color: '#E9D5FF', fontSize: 15, fontWeight: '700', letterSpacing: 0.6 },
+  secondaryButtonText: {
+    color: "#E9D5FF",
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
   infoButton: {
-    justifyContent: 'center', alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 10,
   },
-  infoButtonText: { color: '#C77DFF', fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
-  footerText: { fontSize: 12, color: 'rgba(233, 213, 255, 0.5)', letterSpacing: 1, marginTop: 10 },
+  infoButtonText: {
+    color: "#C77DFF",
+    fontSize: 14,
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+  footerText: {
+    fontSize: 12,
+    color: "rgba(233, 213, 255, 0.5)",
+    letterSpacing: 1,
+    marginTop: 10,
+  },
+  requestsText1: {
+    marginTop: 25,
+    alignSelf: "center",
+    color: "#05f3fc",
+    fontSize: 24,
+    fontWeight: "700",
+  },
 });

@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,8 +10,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { supabase } from '../src/lib/supabase';
+} from "react-native";
+import { supabase } from "../src/lib/supabase";
 
 type SupportRequest = {
   id: string;
@@ -47,7 +47,7 @@ export default function RequestsReceivedScreen() {
       setUserId(uid);
 
       if (!uid) {
-        router.replace('/sign-in');
+        router.replace("/sign-in");
         return;
       }
 
@@ -59,17 +59,17 @@ export default function RequestsReceivedScreen() {
       channel = supabase
         .channel(uniqueName)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'support_requests',
+            event: "*",
+            schema: "public",
+            table: "support_requests",
             filter: `contact_user_id=eq.${uid}`,
           },
           (payload) => {
-            console.log('Cambio en support_requests:', payload);
+            console.log("Cambio en support_requests:", payload);
             fetchRequests(uid);
-          }
+          },
         )
         .subscribe();
     };
@@ -87,14 +87,16 @@ export default function RequestsReceivedScreen() {
       setLoading(true);
 
       const { data: rawRequests, error } = await supabase
-        .from('support_requests')
-        .select(`
+        .from("support_requests")
+        .select(
+          `
           *,
           emergency_contacts ( name, relationship, phone )
-        `)
-        .eq('contact_user_id', uid)
-        .in('status', ['pending', 'notified'])
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .eq("contact_user_id", uid)
+        .in("status", ["pending", "notified"])
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -106,18 +108,18 @@ export default function RequestsReceivedScreen() {
       const sessionIds = [...new Set(rawRequests.map((r) => r.session_id))];
 
       const { data: sessions } = await supabase
-        .from('support_sessions')
-        .select('id, user_id, status')
-        .in('id', sessionIds);
+        .from("support_sessions")
+        .select("id, user_id, status")
+        .in("id", sessionIds);
 
       const sessionsMap = new Map(sessions?.map((s) => [s.id, s]) || []);
 
       const userIds = [...new Set(sessions?.map((s) => s.user_id) || [])];
 
       const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, username')
-        .in('id', userIds);
+        .from("public_profiles")
+        .select("id, full_name, username")
+        .in("id", userIds);
 
       const profilesMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
@@ -126,14 +128,18 @@ export default function RequestsReceivedScreen() {
         const profile = session ? profilesMap.get(session.user_id) : null;
         return {
           ...r,
-          session_owner_name: profile?.full_name || profile?.username || 'Usuario AURA',
+          session_owner_name:
+            profile?.full_name || profile?.username || "Usuario AURA",
         };
       });
 
       setRequests(enriched);
     } catch (error: any) {
-      console.error('Error cargando solicitudes:', error);
-      Alert.alert('Error', 'No se pudieron cargar las solicitudes: ' + (error?.message || ''));
+      console.error("Error cargando solicitudes:", error);
+      Alert.alert(
+        "Error",
+        "No se pudieron cargar las solicitudes: " + (error?.message || ""),
+      );
     } finally {
       setLoading(false);
     }
@@ -146,17 +152,17 @@ export default function RequestsReceivedScreen() {
 
       // 1. Verificar que la sesión siga pendiente
       const { data: currentSession, error: checkError } = await supabase
-        .from('support_sessions')
-        .select('status, accepted_by')
-        .eq('id', request.session_id)
+        .from("support_sessions")
+        .select("status, accepted_by")
+        .eq("id", request.session_id)
         .single();
 
       if (checkError) throw checkError;
 
-      if (currentSession?.status === 'accepted') {
+      if (currentSession?.status === "accepted") {
         Alert.alert(
-          'Acompañamiento ya aceptado',
-          'Otra persona ya está acompañando. ¡Gracias por estar disponible!'
+          "Acompañamiento ya aceptado",
+          "Otra persona ya está acompañando. ¡Gracias por estar disponible!",
         );
         fetchRequests(userId);
         return;
@@ -164,57 +170,53 @@ export default function RequestsReceivedScreen() {
 
       // 2. Actualizar la sesión
       const { data: updatedSession, error: sessionError } = await supabase
-        .from('support_sessions')
+        .from("support_sessions")
         .update({
-          status: 'accepted',
+          status: "accepted",
           accepted_by: userId,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', request.session_id)
+        .eq("id", request.session_id)
         .select()
         .single();
 
       if (sessionError) throw sessionError;
-      if (!updatedSession) throw new Error('No se actualizó la sesión.');
+      if (!updatedSession) throw new Error("No se actualizó la sesión.");
 
       // 3. Marcar su propia solicitud como aceptada
       const { error: acceptReqError } = await supabase
-        .from('support_requests')
-        .update({ status: 'accepted' })
-        .eq('id', request.id);
+        .from("support_requests")
+        .update({ status: "accepted" })
+        .eq("id", request.id);
 
       if (acceptReqError) throw acceptReqError;
 
       // 4. Marcar las demás solicitudes como 'notified'
       const { error: notifyOthersError } = await supabase
-        .from('support_requests')
-        .update({ status: 'notified' })
-        .eq('session_id', request.session_id)
-        .neq('id', request.id);
+        .from("support_requests")
+        .update({ status: "notified" })
+        .eq("session_id", request.session_id)
+        .neq("id", request.id);
 
       if (notifyOthersError) throw notifyOthersError;
 
       // 5. Alert con navegación a la pantalla compartida
-      Alert.alert(
-        'Acompañamiento aceptado',
-        'Has aceptado brindar apoyo.',
-        [
-          {
-            text: 'Continuar',
-            onPress: () => {
-              router.push({
-                pathname: '/companion-session',
-                params: { session_id: request.session_id },
-              });
-            },
+      Alert.alert("Acompañamiento aceptado", "Has aceptado brindar apoyo.", [
+        {
+          text: "Continuar",
+          onPress: () => {
+            router.push({
+              pathname: "/companion-session",
+              params: { session_id: request.session_id },
+            });
           },
-        ]
-      );
+        },
+      ]);
 
       fetchRequests(userId);
     } catch (error: any) {
-      console.error('Error al aceptar:', error);
-      Alert.alert('Error', error?.message || 'No se pudo aceptar la solicitud');
+      console.error("Error al aceptar:", error);
+      Alert.alert("Error", error?.message || "No se pudo aceptar la solicitud");
     } finally {
       setProcessingId(null);
     }
@@ -224,16 +226,16 @@ export default function RequestsReceivedScreen() {
     try {
       setProcessingId(request.id);
       const { error } = await supabase
-        .from('support_requests')
-        .update({ status: 'rejected' })
-        .eq('id', request.id);
+        .from("support_requests")
+        .update({ status: "rejected" })
+        .eq("id", request.id);
 
       if (error) throw error;
 
-      Alert.alert('Solicitud rechazada');
+      Alert.alert("Solicitud rechazada");
       if (userId) fetchRequests(userId);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo rechazar la solicitud');
+      Alert.alert("Error", error.message || "No se pudo rechazar la solicitud");
     } finally {
       setProcessingId(null);
     }
@@ -241,16 +243,25 @@ export default function RequestsReceivedScreen() {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#1A0033', '#3A0CA3', '#7209B7', '#1A0033']} style={styles.centered}>
+      <LinearGradient
+        colors={["#0baaf3", "#3A0CA3", "#7209B7", "#1A0033"]}
+        style={styles.centered}
+      >
         <ActivityIndicator color="#FFFFFF" size="large" />
       </LinearGradient>
     );
   }
 
   return (
-    <LinearGradient colors={['#1A0033', '#3A0CA3', '#7209B7', '#1A0033']} style={styles.container}>
+    <LinearGradient
+      colors={["#08f5f5", "#3A0CA3", "#7209B7", "#1A0033"]}
+      style={styles.container}
+    >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.title}>Solicitudes recibidas</Text>
@@ -263,24 +274,27 @@ export default function RequestsReceivedScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="notifications-outline" size={40} color="#C77DFF" />
-            <Text style={styles.emptyText}>No tienes solicitudes pendientes</Text>
+            <Text style={styles.emptyText}>
+              No tienes solicitudes pendientes
+            </Text>
           </View>
         }
         renderItem={({ item }) => {
-          const isNotified = item.status === 'notified';
+          const isNotified = item.status === "notified";
 
           return (
             <View style={[styles.card, isNotified && styles.cardNotified]}>
               <View style={styles.userInfo}>
                 <Ionicons
-                  name={isNotified ? 'checkmark-circle' : 'person-circle'}
+                  name={isNotified ? "checkmark-circle" : "person-circle"}
                   size={48}
-                  color={isNotified ? '#2ECC71' : '#C77DFF'}
+                  color={isNotified ? "#2ECC71" : "#C77DFF"}
                 />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.userName}>{item.session_owner_name}</Text>
                   <Text style={styles.userRelation}>
-                    {item.emergency_contacts?.relationship || 'Contacto de apoyo'}
+                    {item.emergency_contacts?.relationship ||
+                      "Contacto de apoyo"}
                   </Text>
                   <Text style={styles.timestamp}>
                     {new Date(item.created_at).toLocaleString()}
@@ -301,7 +315,10 @@ export default function RequestsReceivedScreen() {
 
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
-                      style={[styles.acceptButton, processingId === item.id && { opacity: 0.6 }]}
+                      style={[
+                        styles.acceptButton,
+                        processingId === item.id && { opacity: 0.6 },
+                      ]}
                       onPress={() => handleAccept(item)}
                       disabled={processingId === item.id}
                     >
@@ -312,7 +329,10 @@ export default function RequestsReceivedScreen() {
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.rejectButton, processingId === item.id && { opacity: 0.6 }]}
+                      style={[
+                        styles.rejectButton,
+                        processingId === item.id && { opacity: 0.6 },
+                      ]}
                       onPress={() => handleReject(item)}
                       disabled={processingId === item.id}
                     >
@@ -331,10 +351,10 @@ export default function RequestsReceivedScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
     paddingHorizontal: 20,
     paddingTop: 60,
@@ -344,96 +364,96 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  title: { fontSize: 24, fontWeight: '800', color: '#FFF' },
+  title: { fontSize: 24, fontWeight: "800", color: "#FFF" },
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 80,
     gap: 10,
   },
   emptyText: {
-    color: '#E9D5FF',
+    color: "#E9D5FF",
     fontSize: 16,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   cardNotified: {
-    backgroundColor: 'rgba(46,204,113,0.10)',
-    borderColor: 'rgba(46,204,113,0.5)',
+    backgroundColor: "rgba(46,204,113,0.10)",
+    borderColor: "rgba(46,204,113,0.5)",
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   userName: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   userRelation: {
-    color: '#C77DFF',
+    color: "#C77DFF",
     fontSize: 13,
     marginTop: 2,
   },
   timestamp: {
-    color: 'rgba(233,213,255,0.5)',
+    color: "rgba(233,213,255,0.5)",
     fontSize: 11,
     marginTop: 2,
   },
   message: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 15,
     marginBottom: 15,
   },
   thanksBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(46,204,113,0.15)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(46,204,113,0.15)",
     borderRadius: 12,
     padding: 12,
     gap: 10,
   },
   thanksText: {
     flex: 1,
-    color: '#2ECC71',
+    color: "#2ECC71",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     lineHeight: 20,
   },
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   acceptButton: {
     flex: 1,
-    backgroundColor: '#2ECC71',
+    backgroundColor: "#2ECC71",
     borderRadius: 12,
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   acceptText: {
-    color: '#FFF',
-    fontWeight: '800',
+    color: "#FFF",
+    fontWeight: "800",
   },
   rejectButton: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 12,
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   rejectText: {
-    color: '#FF6B6B',
-    fontWeight: '800',
+    color: "#FF6B6B",
+    fontWeight: "800",
   },
 });
