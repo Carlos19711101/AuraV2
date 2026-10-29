@@ -53,7 +53,7 @@ export default function RootLayout() {
       .then(({ data: { session } }: { data: { session: any } }) => {
         if (session?.access_token) {
           supabase.realtime.setAuth(session.access_token);
-          console.log("INITIAL_SESSION: Realtime auth configurado");
+          // console.log("INITIAL_SESSION: Realtime auth configurado");
         }
       });
 
@@ -222,7 +222,7 @@ export default function RootLayout() {
 
     const receivedSubscription = Notifications.addNotificationReceivedListener(
       (notification) => {
-        console.log("Notif FG:", notification.request.content.title);
+        // console.log("Notif FG:", notification.request.content.title);
       },
     );
 
